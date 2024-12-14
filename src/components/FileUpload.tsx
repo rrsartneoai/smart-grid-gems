@@ -3,9 +3,12 @@ import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
-import * as pdfjs from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
+
+// Initialize PDF.js worker
+GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${getDocument.version}/pdf.worker.min.js`;
 
 const ALLOWED_FILE_TYPES = [
   "application/pdf",
@@ -50,7 +53,7 @@ export function FileUpload() {
 
   const processPdfFile = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjs.getDocument(arrayBuffer).promise;
+    const pdf = await getDocument(arrayBuffer).promise;
     let fullText = '';
     
     for (let i = 1; i <= pdf.numPages; i++) {
