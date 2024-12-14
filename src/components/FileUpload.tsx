@@ -24,11 +24,7 @@ export function FileUpload() {
   useEffect(() => {
     // Initialize PDF.js worker
     const initPdfWorker = async () => {
-      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.mjs',
-        import.meta.url
-      ).toString();
+      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
     };
     initPdfWorker();
   }, []);
