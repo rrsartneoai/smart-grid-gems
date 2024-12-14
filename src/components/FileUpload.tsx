@@ -3,6 +3,9 @@ import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
+import * as pdfjs from 'pdfjs-dist';
+import mammoth from 'mammoth';
+import Tesseract from 'tesseract.js';
 
 const ALLOWED_FILE_TYPES = [
   "application/pdf",
@@ -15,6 +18,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export function FileUpload() {
   const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const handleFileValidation = (file: File) => {
@@ -39,19 +43,81 @@ export function FileUpload() {
     return true;
   };
 
-  const handleFiles = (files: FileList | null) => {
+  const processImageFile = async (file: File): Promise<string> => {
+    const result = await Tesseract.recognize(file, 'pol');
+    return result.data.text;
+  };
+
+  const processPdfFile = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument(arrayBuffer).promise;
+    let fullText = '';
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+    
+    return fullText;
+  };
+
+  const processDocxFile = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  };
+
+  const processFile = async (file: File) => {
+    try {
+      let extractedText = '';
+      
+      switch (file.type) {
+        case 'application/pdf':
+          extractedText = await processPdfFile(file);
+          break;
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+          extractedText = await processDocxFile(file);
+          break;
+        case 'image/png':
+        case 'image/jpeg':
+          extractedText = await processImageFile(file);
+          break;
+        default:
+          throw new Error('Nieobsługiwany format pliku');
+      }
+
+      console.log('Extracted text:', extractedText);
+      
+      toast({
+        title: "Sukces",
+        description: "Plik został przetworzony pomyślnie",
+      });
+
+      return extractedText;
+    } catch (error) {
+      console.error('Error processing file:', error);
+      toast({
+        variant: "destructive",
+        title: "Błąd",
+        description: "Wystąpił błąd podczas przetwarzania pliku",
+      });
+    }
+  };
+
+  const handleFiles = async (files: FileList | null) => {
     if (!files) return;
 
     const file = files[0];
     if (!handleFileValidation(file)) return;
 
-    toast({
-      title: "Sukces",
-      description: `Plik ${file.name} został wgrany pomyślnie`,
-    });
-    
-    // Here we'll later add the file processing logic
-    console.log("Uploaded file:", file);
+    setIsProcessing(true);
+    try {
+      await processFile(file);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -83,10 +149,10 @@ export function FileUpload() {
         <Upload className="w-12 h-12 text-muted-foreground" />
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            Przeciągnij i upuść plik lub
+            {isProcessing ? "Przetwarzanie pliku..." : "Przeciągnij i upuść plik lub"}
           </p>
           <label htmlFor="file-upload" className="cursor-pointer">
-            <Button variant="link" className="mt-1">
+            <Button variant="link" className="mt-1" disabled={isProcessing}>
               wybierz z dysku
             </Button>
             <input
@@ -95,6 +161,7 @@ export function FileUpload() {
               className="hidden"
               accept=".pdf,.docx,.png,.jpg,.jpeg"
               onChange={(e) => handleFiles(e.target.files)}
+              disabled={isProcessing}
             />
           </label>
         </div>
