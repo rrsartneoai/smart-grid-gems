@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -6,10 +6,6 @@ import { Card } from "@/components/ui/card";
 import * as pdfjs from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
-
-// Initialize PDF.js worker
-const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const ALLOWED_FILE_TYPES = [
   "application/pdf",
@@ -24,6 +20,15 @@ export function FileUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize PDF.js worker
+    const initPdfWorker = async () => {
+      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
+      pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+    };
+    initPdfWorker();
+  }, []);
 
   const handleFileValidation = (file: File) => {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
