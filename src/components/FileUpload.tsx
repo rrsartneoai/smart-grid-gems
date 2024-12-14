@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import * as pdfjs from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
 
 const ALLOWED_FILE_TYPES = [
   "application/pdf",
@@ -23,11 +24,8 @@ export function FileUpload() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize PDF.js worker
-    const initPdfWorker = async () => {
-      pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-    };
-    initPdfWorker();
+    // Initialize PDF.js worker using the local worker file
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
   }, []);
 
   const handleFileValidation = (file: File) => {
