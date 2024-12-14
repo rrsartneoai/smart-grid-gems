@@ -19,6 +19,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export function FileUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,11 +53,19 @@ export function FileUpload() {
   };
 
   const processImageFile = async (file: File): Promise<string> => {
+    toast({
+      title: "Przetwarzanie",
+      description: "Trwa rozpoznawanie tekstu z obrazu...",
+    });
     const result = await Tesseract.recognize(file, 'pol');
     return result.data.text;
   };
 
   const processPdfFile = async (file: File): Promise<string> => {
+    toast({
+      title: "Przetwarzanie",
+      description: "Trwa przetwarzanie pliku PDF...",
+    });
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument(arrayBuffer).promise;
     let fullText = '';
@@ -72,6 +81,10 @@ export function FileUpload() {
   };
 
   const processDocxFile = async (file: File): Promise<string> => {
+    toast({
+      title: "Przetwarzanie",
+      description: "Trwa przetwarzanie dokumentu DOCX...",
+    });
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
     return result.value;
@@ -111,20 +124,29 @@ export function FileUpload() {
         title: "Błąd",
         description: "Wystąpił błąd podczas przetwarzania pliku",
       });
+      throw error;
     }
   };
 
   const handleFiles = async (files: FileList | null) => {
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
     const file = files[0];
-    if (!handleFileValidation(file)) return;
+    setSelectedFile(file);
+    
+    if (!handleFileValidation(file)) {
+      setSelectedFile(null);
+      return;
+    }
 
     setIsProcessing(true);
     try {
       await processFile(file);
+    } catch (error) {
+      console.error('Error in handleFiles:', error);
     } finally {
       setIsProcessing(false);
+      setSelectedFile(null);
     }
   };
 
@@ -157,7 +179,9 @@ export function FileUpload() {
         <Upload className="w-12 h-12 text-muted-foreground" />
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            {isProcessing ? "Przetwarzanie pliku..." : "Przeciągnij i upuść plik lub"}
+            {isProcessing 
+              ? `Przetwarzanie pliku: ${selectedFile?.name}...` 
+              : "Przeciągnij i upuść plik lub"}
           </p>
           <label htmlFor="file-upload" className="cursor-pointer">
             <Button variant="link" className="mt-1" disabled={isProcessing}>
