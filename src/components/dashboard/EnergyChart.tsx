@@ -184,6 +184,8 @@ export const EnergyChart = () => {
                   x={data[hoveredPoint].time}
                   stroke="#888888"
                   strokeDasharray="3 3"
+                  isFront={true}
+                  ifOverflow="extendDomain"
                 />
               )}
             </LineChart>
