@@ -25,7 +25,10 @@ export function FileUpload() {
     // Initialize PDF.js worker
     const initPdfWorker = async () => {
       const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
-      pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+        'pdfjs-dist/build/pdf.worker.mjs',
+        import.meta.url
+      ).toString();
     };
     initPdfWorker();
   }, []);
