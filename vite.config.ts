@@ -24,5 +24,8 @@ export default defineConfig(({ mode }) => ({
       ]
     },
     target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+  },
+  optimizeDeps: {
+    exclude: ['pdfjs-dist/build/pdf.worker.entry']
   }
 }));
