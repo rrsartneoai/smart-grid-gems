@@ -18,7 +18,7 @@ const Index = () => {
         >
           <div className="flex flex-col gap-4">
             <h1 className="text-3xl font-bold tracking-tight">
-              Dashboard Sieci Energetycznej
+              Panel Sieci Energetycznej
             </h1>
             <p className="text-muted-foreground">
               Monitoruj zużycie i generację energii w czasie rzeczywistym
