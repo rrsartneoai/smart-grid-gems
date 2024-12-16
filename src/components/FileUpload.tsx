@@ -8,6 +8,7 @@ import {
   ALLOWED_FILE_TYPES,
   MAX_FILE_SIZE,
 } from "@/utils/fileProcessing";
+import { processDocumentForRAG } from "@/utils/ragUtils";
 
 export function FileUpload() {
   const [isDragging, setIsDragging] = useState(false);
@@ -56,11 +57,12 @@ export function FileUpload() {
           throw new Error('Unsupported file format');
       }
 
-      console.log('Extracted text:', extractedText);
+      // Process the extracted text for RAG
+      await processDocumentForRAG(extractedText);
       
       toast({
         title: "Success",
-        description: "File processed successfully",
+        description: "File processed and ready for questions",
       });
 
       return extractedText;

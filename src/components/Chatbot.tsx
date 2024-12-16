@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { getGeminiResponse } from "@/lib/gemini";
+import { useMutation } from "@tanstack/react-query";
+import { generateRAGResponse } from "@/utils/ragUtils";
 import { Send } from "lucide-react";
 import { stats } from "./dashboard/PowerStats";
 
@@ -27,7 +27,7 @@ const getDashboardValue = (query: string): string => {
     return `${matchingStat.title}: ${matchingStat.value}${matchingStat.unit ? ' ' + matchingStat.unit : ''} (${matchingStat.description})`;
   }
 
-  return "Przepraszam, nie mogę znaleźć tej informacji w dashboardzie.";
+  return "I couldn't find this information in the dashboard.";
 };
 
 export function Chatbot() {
@@ -39,11 +39,11 @@ export function Chatbot() {
     mutationFn: async (input: string) => {
       // First check if we can get the value from dashboard
       const dashboardValue = getDashboardValue(input);
-      if (dashboardValue !== "Przepraszam, nie mogę znaleźć tej informacji w dashboardzie.") {
+      if (dashboardValue !== "I couldn't find this information in the dashboard.") {
         return dashboardValue;
       }
-      // If not found in dashboard, use Gemini
-      return getGeminiResponse(input);
+      // If not found in dashboard, use RAG
+      return generateRAGResponse(input);
     },
     onSuccess: (response) => {
       setMessages((prev) => [
@@ -54,8 +54,8 @@ export function Chatbot() {
     onError: () => {
       toast({
         variant: "destructive",
-        title: "Błąd",
-        description: "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie.",
+        title: "Error",
+        description: "Failed to get a response. Please try again.",
       });
     },
   });
@@ -96,7 +96,7 @@ export function Chatbot() {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Napisz wiadomość..."
+          placeholder="Ask a question..."
           disabled={isPending}
         />
         <Button type="submit" disabled={isPending}>
