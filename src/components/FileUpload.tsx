@@ -19,8 +19,8 @@ export function FileUpload() {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       toast({
         variant: "destructive",
-        title: "Błąd",
-        description: "Niedozwolony typ pliku. Akceptowane formaty: PDF, DOCX, PNG, JPG",
+        title: "Error",
+        description: "Invalid file type. Accepted formats: PDF, DOCX, PNG, JPG",
       });
       return false;
     }
@@ -28,8 +28,8 @@ export function FileUpload() {
     if (file.size > MAX_FILE_SIZE) {
       toast({
         variant: "destructive",
-        title: "Błąd",
-        description: "Plik jest za duży. Maksymalny rozmiar to 5MB",
+        title: "Error",
+        description: "File is too large. Maximum size is 5MB",
       });
       return false;
     }
@@ -53,14 +53,14 @@ export function FileUpload() {
           extractedText = await processImageFile(file);
           break;
         default:
-          throw new Error('Nieobsługiwany format pliku');
+          throw new Error('Unsupported file format');
       }
 
       console.log('Extracted text:', extractedText);
       
       toast({
-        title: "Sukces",
-        description: "Plik został przetworzony pomyślnie",
+        title: "Success",
+        description: "File processed successfully",
       });
 
       return extractedText;
@@ -68,8 +68,8 @@ export function FileUpload() {
       console.error('Error processing file:', error);
       toast({
         variant: "destructive",
-        title: "Błąd",
-        description: "Wystąpił błąd podczas przetwarzania pliku",
+        title: "Error",
+        description: "An error occurred while processing the file",
       });
       throw error;
     }
@@ -103,6 +103,7 @@ export function FileUpload() {
       isProcessing={isProcessing}
       selectedFile={selectedFile}
       onFileSelect={handleFiles}
+      setIsDragging={setIsDragging}
     />
   );
 }

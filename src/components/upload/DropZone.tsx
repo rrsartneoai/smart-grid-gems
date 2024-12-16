@@ -7,9 +7,16 @@ interface DropZoneProps {
   isProcessing: boolean;
   selectedFile: File | null;
   onFileSelect: (files: FileList | null) => void;
+  setIsDragging: (isDragging: boolean) => void;
 }
 
-export const DropZone = ({ isDragging, isProcessing, selectedFile, onFileSelect }: DropZoneProps) => {
+export const DropZone = ({ 
+  isDragging, 
+  isProcessing, 
+  selectedFile, 
+  onFileSelect,
+  setIsDragging 
+}: DropZoneProps) => {
   return (
     <Card
       className={`p-8 border-2 border-dashed transition-colors ${
@@ -17,9 +24,12 @@ export const DropZone = ({ isDragging, isProcessing, selectedFile, onFileSelect 
       }`}
       onDragOver={(e) => {
         e.preventDefault();
+        setIsDragging(true);
       }}
+      onDragLeave={() => setIsDragging(false)}
       onDrop={(e) => {
         e.preventDefault();
+        setIsDragging(false);
         onFileSelect(e.dataTransfer.files);
       }}
     >
@@ -28,12 +38,12 @@ export const DropZone = ({ isDragging, isProcessing, selectedFile, onFileSelect 
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             {isProcessing 
-              ? `Przetwarzanie pliku: ${selectedFile?.name}...` 
-              : "Przeciągnij i upuść plik lub"}
+              ? `Processing file: ${selectedFile?.name}...` 
+              : "Drag and drop a file or"}
           </p>
           <label htmlFor="file-upload" className="cursor-pointer">
             <Button variant="link" className="mt-1" disabled={isProcessing}>
-              wybierz z dysku
+              choose from disk
             </Button>
             <input
               id="file-upload"
