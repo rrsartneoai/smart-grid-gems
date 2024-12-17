@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-    },
+    }
   },
   build: {
     rollupOptions: {
@@ -24,8 +24,12 @@ export default defineConfig(({ mode }) => ({
       ]
     },
     target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
   },
   optimizeDeps: {
-    exclude: ['pdfjs-dist/build/pdf.worker.entry']
+    exclude: ['pdfjs-dist/build/pdf.worker.entry'],
+    include: ['react-dropzone']
   }
 }));
