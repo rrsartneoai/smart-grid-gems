@@ -1,7 +1,6 @@
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 import { getGeminiResponse } from '@/lib/gemini';
 
-// Store chunks in memory (in a real app, you'd use a vector database)
 let documentChunks: { text: string; metadata?: Record<string, any> }[] = [];
 
 export const processDocumentForRAG = async (text: string) => {
@@ -38,10 +37,18 @@ export const searchRelevantChunks = (query: string): string[] => {
     return [];
   }
 
-  // Simple keyword-based search (in a real app, you'd use embeddings and cosine similarity)
-  const relevantChunks = documentChunks.filter(chunk => 
-    chunk.text.toLowerCase().includes(query.toLowerCase())
-  );
+  // Dla zapytania "podsumuj" zwracamy wszystkie fragmenty
+  if (query.toLowerCase() === 'podsumuj') {
+    console.log('Zapytanie o podsumowanie - zwracam wszystkie fragmenty');
+    return documentChunks.map(chunk => chunk.text);
+  }
+
+  // Dla innych zapytań szukamy po słowach kluczowych
+  const keywords = query.toLowerCase().split(' ');
+  const relevantChunks = documentChunks.filter(chunk => {
+    const text = chunk.text.toLowerCase();
+    return keywords.some(keyword => text.includes(keyword));
+  });
 
   console.log(`Znaleziono ${relevantChunks.length} pasujących fragmentów`);
   if (relevantChunks.length > 0) {
@@ -66,12 +73,12 @@ export const generateRAGResponse = async (query: string): Promise<string> => {
   }
 
   const context = relevantChunks.join('\n\n');
-  const prompt = `Na podstawie poniższego kontekstu, odpowiedz na pytanie. Jeśli odpowiedź nie znajduje się w kontekście, powiedz o tym.
+  const prompt = `Na podstawie poniższego kontekstu, ${query === 'podsumuj' ? 'przedstaw krótkie podsumowanie głównych punktów dokumentu' : 'odpowiedz na pytanie'}. Jeśli odpowiedź nie znajduje się w kontekście, powiedz o tym.
 
 Kontekst:
 ${context}
 
-Pytanie: ${query}`;
+${query === 'podsumuj' ? 'Podsumuj najważniejsze informacje z dokumentu.' : `Pytanie: ${query}`}`;
 
   console.log('Wysyłam zapytanie do Gemini z kontekstem długości:', context.length);
   return getGeminiResponse(prompt);
